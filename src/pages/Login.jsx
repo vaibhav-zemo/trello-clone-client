@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Heading,
   FormControl,
@@ -11,6 +11,9 @@ import { axiosInstance } from "../Axios";
 import { useDispatch } from "react-redux";
 import { setUser, setToken } from "../slices/userSlice";
 import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useSelector } from "react-redux";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -18,25 +21,45 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const user = useSelector((state) => state.user);
+  const toastId = React.useRef(null);
+
+  useEffect(() => {
+    if (user?.token) {
+      navigate("/");
+    }
+  }, []);
 
   const handleLogin = async () => {
+    if (loading) return;
+    if (!email || !password) {
+      return toast.error("Please fill all the fields");
+    }
+    if (password.length < 8) {
+      return toast.error("Password must be at least 8 characters long");
+    }
+
+    toastId.current = toast.loading("Logging in...", { autoClose: false });
     try {
       setLoading(true);
       const response = await axiosInstance.post("/auth/login", {
         email,
         password,
       });
+      toast.success("Logged in successfully");
       dispatch(setUser(response?.data?.user));
       dispatch(setToken(response?.data?.token));
       localStorage.setItem("user", JSON.stringify(response?.data?.user));
       localStorage.setItem("token", JSON.stringify(response?.data?.token));
       navigate("/");
     } catch (err) {
-      console.log(err);
+      toast.error(err?.response?.data?.message || "An error occurred");
     } finally {
       setLoading(false);
+      toast.dismiss(toastId.current);
     }
   };
+
   return (
     <VStack justifyContent={"center"} alignItems={"center"} w={"full"} h="full">
       <VStack
@@ -80,6 +103,7 @@ const Login = () => {
               </Button>
             </VStack>
           </FormControl>
+          <ToastContainer />
         </VStack>
       </VStack>
     </VStack>

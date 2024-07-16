@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Heading,
   FormControl,
@@ -10,32 +10,57 @@ import {
 import { axiosInstance } from "../Axios";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const user = useSelector((state) => state.user);
+  const toastId = React.useRef(null);
+
+  useEffect(() => {
+    if (user?.token) {
+      navigate("/");
+    }
+  }, []);
 
   const handleRegister = async () => {
+    if (loading) return;
+    if (!email || !password || !confirmPassword || !name) {
+      return toast.error("Please fill all the fields");
+    }
+    if (password !== confirmPassword) {
+      return toast.error("Passwords do not match");
+    }
+    if (password.length < 8) {
+      return toast.error("Password must be at least 8 characters long");
+    }
     try {
-      if (password !== confirmPassword) {
-        alert("Passwords do not match");
-        return;
-      }
-
-      const randomColor = await axios.get("https://x-colors.yurace.pro/api/random");
+      setLoading(true);
+      toastId.current = toast.loading("Registering...", { autoClose: false });
+      const randomColor = await axios.get(
+        "https://x-colors.yurace.pro/api/random"
+      );
       const response = await axiosInstance.post("/auth/register", {
         email,
         password,
         name,
         profileBg: randomColor.data.hex,
       });
-
+      toast.success("Registered successfully");
       navigate("/login");
     } catch (err) {
-      console.log(err);
+      toast.error(err?.response?.data?.message || "An error occurred");
+    }
+    finally {
+      setLoading(false);
+      toast.dismiss(toastId.current);
     }
   };
 
@@ -90,11 +115,17 @@ const Register = () => {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
               </VStack>
-              <Button w="full" bg="scienceBlue" color={"white"} onClick={handleRegister}>
+              <Button
+                w="full"
+                bg="scienceBlue"
+                color={"white"}
+                onClick={handleRegister}
+              >
                 Sign Up
               </Button>
             </VStack>
           </FormControl>
+          <ToastContainer />
         </VStack>
       </VStack>
     </VStack>

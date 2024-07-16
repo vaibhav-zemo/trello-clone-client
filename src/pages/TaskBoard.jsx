@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Flex,
   VStack,
@@ -8,32 +8,43 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { axiosInstance } from "../Axios";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import Task from "../components/TaskBoard/Task";
 import { FaPlus } from "react-icons/fa";
 import TaskModal from "../components/TaskBoard/TaskModal";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const TaskBoard = () => {
   const [task, setTask] = useState([]);
   const [loading, setLoading] = useState(false);
   const { projectId } = useParams();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const location = useLocation();
+  const toastId = useRef(null);
 
   const fetchTasks = async () => {
     try {
       setLoading(true);
-      const project = await axiosInstance(`/projects/${projectId}`);
-      setTask(project.data?.tasks?.list);
+      toastId.current = toast.loading("Fetching tasks...", { autoClose: false });
+      if (location.pathname === "/task-board") {
+        const response = await axiosInstance("/tasks");
+        setTask(response.data?.list);
+      } else {
+        const project = await axiosInstance(`/projects/${projectId}`);
+        setTask(project.data?.tasks?.list);
+      }
     } catch (error) {
-      console.log(error);
+      toast.error(error?.response?.data?.message || "An error occurred");
     } finally {
       setLoading(false);
+      toast.dismiss(toastId.current);
     }
   };
 
   useEffect(() => {
     fetchTasks();
-  }, []);
+  }, [location.pathname, projectId]);
 
   const backlogTasks = task.filter((task) => task.status === "Backlog");
   const inDiscussionTasks = task.filter(
@@ -41,7 +52,7 @@ const TaskBoard = () => {
   );
   const inProgressTasks = task.filter((task) => task.status === "In progress");
   const doneTasks = task.filter((task) => task.status === "Done");
-  
+
   return (
     <Flex mt={10} w="full" justifyContent={"space-around"} flexWrap={"wrap"}>
       <VStack alignItems={"start"} w="20%" minH={"232px"}>
@@ -120,6 +131,7 @@ const TaskBoard = () => {
             />
           ))}
         </VStack>
+        <ToastContainer />
       </VStack>
     </Flex>
   );

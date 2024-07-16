@@ -19,6 +19,7 @@ function App() {
       >
         <Route path="/" index element={<Home />} />
         <Route path="/tasks/:projectId" element={<TaskBoard />} />
+        <Route path="/task-board" element={<TaskBoard />} />
       </Route>
       <Route element={<Default />}>
         <Route path="/login" element={<Login />} />

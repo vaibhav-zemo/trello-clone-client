@@ -14,27 +14,37 @@ import {
 } from "@chakra-ui/react";
 import { axiosInstance } from "../../Axios";
 import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const ProjectModal = ({ isOpen, onClose, fetchProjects }) => {
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
   const [loading, setLoading] = useState(false);
+  const toastId = React.useRef(null);
 
   const createProject = async () => {
+    if (loading) return;
+    if (!projectName || !projectDescription) {
+      return toast.error("Please fill all the fields");
+    }
     try {
       setLoading(true);
+      toastId.current = toast.loading("Creating project...", { autoClose: false });
       const randomColor = await axios.get("https://x-colors.yurace.pro/api/random");
       const response = await axiosInstance.post("/projects", {
         name: projectName,
         description: projectDescription,
         bgColor: randomColor.data.hex,
       });
+      toast.success("Project created successfully");
       onClose();
       fetchProjects();
     } catch (err) {
-      console.log(err);
+      toast.error(err?.response?.data?.message || "An error occurred");
     } finally {
       setLoading(false);
+      toast.dismiss(toastId.current);
     }
   };
 
@@ -63,6 +73,7 @@ const ProjectModal = ({ isOpen, onClose, fetchProjects }) => {
             </Button>
           </VStack>
         </ModalBody>
+        <ToastContainer />
       </ModalContent>
     </Modal>
   );

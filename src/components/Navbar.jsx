@@ -23,7 +23,7 @@ const Header = () => {
 
   const handleLogout = () => {
     dispatch(setUser({}));
-    dispatch(setToken(null));
+    dispatch(setToken(''));
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/login");

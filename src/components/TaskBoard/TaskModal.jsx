@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -16,7 +16,9 @@ import {
 } from "@chakra-ui/react";
 import { axiosInstance } from "../../Axios";
 import Select from "react-select";
-import { Form, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const TaskModal = ({ isOpen, onClose, fetchTasks }) => {
   const [taskName, setTaskName] = useState("");
@@ -28,10 +30,16 @@ const TaskModal = ({ isOpen, onClose, fetchTasks }) => {
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const { projectId } = useParams();
+  const toastId = React.useRef(null);
 
   const createTask = async () => {
+    if (loading) return;
+    if (!taskName || !taskDescription || !dueDate || !tags || !status) {
+      return toast.error("Please fill all the fields");
+    }
     try {
       setLoading(true);
+      toastId.current = toast.loading("Creating task...", { autoClose: false });
       const response = await axiosInstance.post("/tasks", {
         name: taskName,
         description: taskDescription,
@@ -41,24 +49,24 @@ const TaskModal = ({ isOpen, onClose, fetchTasks }) => {
         status,
         projectId,
       });
+      toast.success("Task created successfully");
       onClose();
       fetchTasks();
     } catch (error) {
-      console.log(error);
+      toast.error(error?.response?.data?.message || "An error occurred");
     } finally {
       setLoading(false);
+      toast.dismiss(toastId.current);
     }
   };
 
   const listUsers = async () => {
     try {
-      setLoading(true);
       const response = await axiosInstance.get("/users");
       setUsers(response.data?.list);
     } catch (error) {
       console.log(error);
     } finally {
-      setLoading(false);
     }
   };
 
@@ -134,6 +142,7 @@ const TaskModal = ({ isOpen, onClose, fetchTasks }) => {
             Save
           </Button>
         </ModalFooter>
+        <ToastContainer />
       </ModalContent>
     </Modal>
   );
