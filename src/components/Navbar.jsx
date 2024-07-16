@@ -19,8 +19,7 @@ const Header = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const dp =
-    user?.user?.name?.split("")[0].toUpperCase();
+  const dp = user?.user?.name?.split("")[0].toUpperCase();
 
   const handleLogout = () => {
     dispatch(setUser({}));
@@ -39,13 +38,15 @@ const Header = () => {
       p={4}
       justifyContent={"space-between"}
     >
-      <Image src="/Images/logo.png" alt="Logo" w="75px" />
+      <Link to="/">
+        <Image src="/Images/logo.png" alt="Logo" w="75px" />
+      </Link>
       {user?.token && (
-        <HStack>
+        <Link to="/task-board">
           <Button h={8} color={"black"}>
             Task Board
           </Button>
-        </HStack>
+        </Link>
       )}
       {!user?.token && (
         <HStack>

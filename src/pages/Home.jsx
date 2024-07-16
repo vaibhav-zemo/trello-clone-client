@@ -45,6 +45,7 @@ const Home = () => {
         {projects.map((project) => (
           <Project
             key={project.projectId}
+            projectId={project.projectId}
             project={project.name}
             description={project.description}
             bgColor={project.bgColor}

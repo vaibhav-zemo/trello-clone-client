@@ -5,7 +5,7 @@ import Navbar from "../components/Navbar";
 
 const Default = () => {
   return (
-    <VStack w='100vw' gap={0} bg={'athensGray'} h='100vh' alignItems={'start'} >
+    <VStack gap={0} bg={'athensGray'} alignItems={'start'} >
         <Navbar />
         <Outlet />
     </VStack>

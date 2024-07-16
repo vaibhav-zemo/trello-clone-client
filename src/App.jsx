@@ -4,6 +4,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Home from "./pages/Home";
+import TaskBoard from "./pages/TaskBoard";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         }
       >
         <Route path="/" index element={<Home />} />
+        <Route path="/tasks/:projectId" element={<TaskBoard />} />
       </Route>
       <Route element={<Default />}>
         <Route path="/login" element={<Login />} />
