@@ -8,6 +8,7 @@ import {
   Button,
 } from "@chakra-ui/react";
 import { axiosInstance } from "../Axios";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const Register = () => {
@@ -24,10 +25,12 @@ const Register = () => {
         return;
       }
 
+      const randomColor = await axios.get("https://x-colors.yurace.pro/api/random");
       const response = await axiosInstance.post("/auth/register", {
         email,
         password,
         name,
+        profileBg: randomColor.data.hex,
       });
 
       navigate("/login");
